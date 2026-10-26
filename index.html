@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon IA</title>
+<style>
+body{font-family:sans-serif;margin:0;padding:12px;background:#111;color:#fff}
+#chat{height:70vh;overflow:auto}
+.m{padding:8px;margin:6px 0;border-radius:8px;background:#222}
+.u{background:#1d4ed8}
+input{width:70%;padding:10px}button{padding:10px}
+</style></head><body>
+<h3>Mon assistant IA</h3>
+<div id="chat"></div>
+<input id="t" placeholder="Écris ici...">
+<button onclick="send()">Envoyer</button>
+<script>
+let h=[];
+const c=document.getElementById('chat');
+function add(x,k){const d=document.createElement('div');d.className='m '+k;d.textContent=x;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+async function send(){
+const t=document.getElementById('t');
+const q=t.value.trim();if(!q)return;
+t.value='';add(q,'u');
+h.push({role:'user',content:q});
+const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:h})});
+const d=await r.json();
+h.push({role:'assistant',content:d.reply});
+add(d.reply,'a');
+}
+</script></body></html>
