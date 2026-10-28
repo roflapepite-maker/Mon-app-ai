@@ -1,31 +1,116 @@
-<!DOCTYPE html>
-<html lang="fr"><head>
+<!doctype html>
+<html lang="fr">
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mon IA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090b14">
+<meta name="description" content="Mon Assistant IA — pose tes questions, apprends et crée avec l'intelligence artificielle.">
+<title>Mon Assistant IA</title>
 <style>
-body{font-family:sans-serif;margin:0;padding:12px;background:#111;color:#fff}
-#chat{height:70vh;overflow:auto}
-.m{padding:8px;margin:6px 0;border-radius:8px;background:#222}
-.u{background:#1d4ed8}
-input{width:70%;padding:10px}button{padding:10px}
-</style></head><body>
-<h3>Mon assistant IA</h3>
-<div id="chat"></div>
-<input id="t" placeholder="Écris ici...">
-<button onclick="send()">Envoyer</button>
+:root{color-scheme:dark;--bg:#090b14;--panel:#111522;--line:#292f45;--text:#f5f6ff;--muted:#a5abc2;--accent:#9b7bff;--user:#292044}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% -20%,#28204c 0,transparent 48%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100dvh}
+button,input,textarea{font:inherit}button{cursor:pointer}
+.app{max-width:920px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:0 18px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid #ffffff12;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#a78bfa,#6d5ce8);font-size:21px;font-weight:800;box-shadow:0 7px 24px #7c5cff35}
+.brand h1{font-size:16px;margin:0;font-weight:750}.brand p{font-size:12px;color:var(--muted);margin:4px 0 0}
+.status{font-size:12px;color:#c8baff;background:#9b7bff17;border:1px solid #9b7bff40;border-radius:99px;padding:7px 10px;white-space:nowrap}
+main{flex:1;display:flex;flex-direction:column;min-height:0}
+.welcome{text-align:center;padding:46px 0 26px}
+.spark{font-size:30px;filter:drop-shadow(0 0 16px #a78bfa88)}
+.welcome h2{font-size:clamp(26px,5vw,38px);line-height:1.15;letter-spacing:-1.2px;margin:12px 0;background:linear-gradient(90deg,#fff,#c9bbff);color:transparent;background-clip:text}
+.welcome p{max-width:520px;margin:0 auto;color:var(--muted);line-height:1.65;font-size:14px}
+.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 20px}
+.suggestion{border:1px solid var(--line);background:#111522b8;color:var(--text);border-radius:15px;padding:14px;text-align:left;transition:.2s}
+.suggestion:hover{border-color:#8f79ed;background:#19182c;transform:translateY(-1px)}
+.suggestion strong{display:block;font-size:13px;margin-bottom:5px}.suggestion span{display:block;font-size:12px;color:var(--muted);line-height:1.45}
+#chat{display:flex;flex-direction:column;gap:14px;padding:8px 0 22px}
+.message{display:flex;gap:10px;align-items:flex-start;max-width:88%;animation:appear .18s ease-out}
+.message.user{align-self:flex-end;flex-direction:row-reverse}
+.avatar{flex:0 0 30px;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#28213f;color:#cdbfff;font-size:13px;font-weight:800}
+.message.user .avatar{background:#3b2b70;color:#fff}
+.bubble{padding:12px 14px;border:1px solid var(--line);background:var(--panel);border-radius:4px 16px 16px 16px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;font-size:14px}
+.message.user .bubble{background:var(--user);border-color:#6d5ce744;border-radius:16px 4px 16px 16px}
+.message.error .bubble{border-color:#9b414a;color:#ffc7cc}
+.typing{display:flex;gap:5px;align-items:center;min-height:22px}.typing i{width:6px;height:6px;background:#b6a5ff;border-radius:50%;animation:pulse 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+.composer-wrap{position:sticky;bottom:0;padding:14px 0 calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 18%)}
+.composer{display:flex;gap:10px;align-items:flex-end;padding:10px;background:#121625;border:1px solid #35304f;border-radius:19px;box-shadow:0 12px 45px #0004}
+#prompt{flex:1;min-width:0;resize:none;max-height:150px;min-height:42px;background:transparent;color:var(--text);border:0;outline:0;padding:11px 8px;line-height:1.5;font-size:14px}
+#prompt::placeholder{color:#858ba4}
+#send{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:13px;background:linear-gradient(135deg,#a78bfa,#6c5ce7);color:white;font-size:20px;font-weight:700;box-shadow:0 5px 18px #7c5cff35}
+#send:disabled{opacity:.5;cursor:wait}
+.note{text-align:center;color:#777f99;font-size:11px;margin:9px 0 0}
+.toolbar{display:flex;align-items:center;gap:8px}
+.small-btn{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:10px;padding:8px 10px;font-size:12px}
+footer{text-align:center;color:#737b94;font-size:11px;padding:8px 0 18px}
+@keyframes pulse{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(min-height:850px){.welcome{padding-top:64px}}
+@media(max-width:540px){.app{padding:0 13px}.welcome{padding:35px 0 22px}.welcome h2{font-size:29px}.suggestions{grid-template-columns:1fr}.suggestion{padding:12px}.message{max-width:96%}.brand p{font-size:11px}.status{font-size:11px;padding:6px 8px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><div class="logo">✦</div><div><h1>Mon Assistant IA</h1><p>Ton espace pour apprendre et créer</p></div></div>
+ <div class="toolbar"><span class="status">✦ IA prête</span><button class="small-btn" id="clear" type="button" title="Nouvelle conversation">Effacer</button></div>
+</header>
+<main>
+ <section class="welcome" id="welcome">
+  <div class="spark">✦</div>
+  <h2>Que veux-tu découvrir<br>aujourd'hui ?</h2>
+  <p>Pose tes questions, explore tes idées et avance à ton rythme. Je suis là pour t'aider à comprendre et à créer.</p>
+ </section>
+ <section class="suggestions" id="suggestions" aria-label="Idées de questions">
+  <button class="suggestion" data-prompt="Explique-moi l'intelligence artificielle avec des mots simples."><strong>✧ Comprendre l'IA</strong><span>Une explication simple, étape par étape.</span></button>
+  <button class="suggestion" data-prompt="Aide-moi à créer une application web pour débutant."><strong>⌘ Créer une application</strong><span>Transforme une idée en projet concret.</span></button>
+  <button class="suggestion" data-prompt="Donne-moi un plan pour apprendre la programmation en partant de zéro."><strong>⌁ Apprendre à coder</strong><span>Un parcours clair avec des exercices.</span></button>
+  <button class="suggestion" data-prompt="Aide-moi à trouver des idées originales pour un projet en ligne."><strong>✦ Trouver des idées</strong><span>Explore des pistes créatives et utiles.</span></button>
+ </section>
+ <section id="chat" aria-live="polite" aria-label="Conversation"></section>
+</main>
+<div class="composer-wrap">
+ <form class="composer" id="form">
+  <textarea id="prompt" rows="1" placeholder="Écris ton message ici…" aria-label="Ton message"></textarea>
+  <button id="send" type="submit" aria-label="Envoyer le message">↑</button>
+ </form>
+ <p class="note">L'IA peut se tromper. Vérifie les informations importantes.</p>
+</div>
+<footer>Mon Assistant IA · Conçu pour t'aider à aller plus loin</footer>
+</div>
 <script>
-let h=[];
-const c=document.getElementById('chat');
-function add(x,k){const d=document.createElement('div');d.className='m '+k;d.textContent=x;c.appendChild(d);c.scrollTop=c.scrollHeight;}
-async function send(){
-const t=document.getElementById('t');
-const q=t.value.trim();if(!q)return;
-t.value='';add(q,'u');
-h.push({role:'user',content:q});
-const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:h})});
-const d=await r.json();
-h.push({role:'assistant',content:d.reply});
-add(d.reply,'a');
+const chat=document.getElementById('chat'), input=document.getElementById('prompt'), form=document.getElementById('form'), sendButton=document.getElementById('send');
+const welcome=document.getElementById('welcome'), suggestions=document.getElementById('suggestions');
+let historyMessages=[], busy=false;
+function addMessage(text,who,extraClass=''){
+ const row=document.createElement('div');row.className='message '+who+(extraClass?' '+extraClass:'');
+ const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=who==='user'?'T':'✦';
+ const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;
+ row.append(avatar,bubble);chat.appendChild(row);row.scrollIntoView({behavior:'smooth',block:'nearest'});return row;
 }
-</script></body></html>
+function setStarted(){welcome.hidden=true;suggestions.hidden=true}
+function resizeInput(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,150)+'px'}
+input.addEventListener('input',resizeInput);
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.prompt;resizeInput();form.requestSubmit()}));
+document.getElementById('clear').addEventListener('click',()=>{historyMessages=[];chat.replaceChildren();welcome.hidden=false;suggestions.hidden=false;input.focus()});
+form.addEventListener('submit',async e=>{
+ e.preventDefault();if(busy)return;
+ const question=input.value.trim();if(!question)return;
+ setStarted();input.value='';resizeInput();addMessage(question,'user');
+ historyMessages.push({role:'user',content:question});busy=true;sendButton.disabled=true;
+ const loading=addMessage('','assistant');const bubble=loading.querySelector('.bubble');bubble.innerHTML='<span class="typing" aria-label="Réponse en cours"><i></i><i></i><i></i></span>';
+ try{
+  const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:historyMessages})});
+  let data;try{data=await response.json()}catch{throw new Error('Le serveur a envoyé une réponse illisible. Réessaie dans un instant.')}
+  if(!response.ok)throw new Error(data.error||'Le service IA est momentanément indisponible.');
+  if(!data.reply)throw new Error('Je n’ai pas reçu de réponse. Réessaie avec une autre question.');
+  loading.remove();addMessage(data.reply,'assistant');historyMessages.push({role:'assistant',content:data.reply});
+ }catch(err){loading.remove();addMessage(err.message||'Une erreur est survenue. Vérifie ta connexion puis réessaie.','assistant','error');historyMessages.pop()}
+ finally{busy=false;sendButton.disabled=false;input.focus()}
+});
+</script>
+</body>
+</html>
